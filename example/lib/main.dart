@@ -14,7 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'console.dart';
 import 'prefers.dart';
-import 'local.dart';
 
 void main() async {
   await Prefers.get().init();
@@ -51,7 +50,6 @@ class _TestPageState extends State<TestPage> {
       CodeInputController(text: 'import cat;var a = "123";console.log(a)');
 
   _ensureEngine() async {
-    var a = 1;
     final qjs = IsolateQjs(
       moduleHandler: (String module) async  {
         if(module == "hello")
@@ -129,7 +127,7 @@ class _TestPageState extends State<TestPage> {
               padding: const EdgeInsets.all(12),
               color: Colors.green.withOpacity(0.05),
               constraints: BoxConstraints(minHeight: 100),
-              child: Text(resp == null ? '' : resp!),
+              child: Text("123"),
             ),
           ],
         ),
