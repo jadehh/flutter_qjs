@@ -6,13 +6,18 @@
  * @LastEditTime: 2020-12-02 11:28:06
  */
 import 'package:flutter/material.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_qjs/flutter_qjs.dart';
-
 import 'highlight.dart';
 
-void main() {
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'console.dart';
+import 'prefers.dart';
+import 'local.dart';
+
+void main() async {
+  await Prefers.get().init();
   runApp(MyApp());
 }
 
@@ -39,25 +44,40 @@ class TestPage extends StatefulWidget {
 
 class _TestPageState extends State<TestPage> {
   String resp = "";
-  late IsolateQjs? engine ;
 
-  CodeInputController _controller = CodeInputController(text: 'import cat;var a = "123";console.log(a)');
+  late SharedPreferences? prefs;
+
+  CodeInputController _controller =
+      CodeInputController(text: 'import cat;var a = "123";console.log(a)');
 
   _ensureEngine() async {
-    engine = IsolateQjs(
-      moduleHandler: (String module) async {
-        return await rootBundle.loadString(
-            "js/" + module.replaceFirst(new RegExp(r".js$"), "") + ".js");
+    var a = 1;
+    final qjs = IsolateQjs(
+      moduleHandler: (String module) async  {
+        if(module == "hello")
+          return await rootBundle.loadString("");
+        throw Exception("Module Not found");
       },
     );
-    final setToGlobalObject = await engine!.evaluate("(key, val) => { this[key] = val; }");
-    await (setToGlobalObject as JSInvokable).invoke([
-      "console",
-      {
-        "log": (String message){print(message);},
-        "debug": (String message){print(message);}
-      }
-    ]);
+
+    try {
+      JSInvokable setToGlobalObject = await qjs.evaluate("(key, val) => { this[key] = val; }");
+
+      await setToGlobalObject.invoke(Console.getInvoke());
+       setToGlobalObject.free();
+      await qjs.evaluate('console.log("hello quickjs");');
+      // await qjs.evaluate('local.set("1245");');
+      // final a = await qjs.evaluate('local.get();');
+      // print(a);
+      // qjs.evaluate('console.log(c);');
+
+      // qjs.evaluate(await rootBundle.loadString("js/http.js"));
+
+    } catch (e) {
+      print('[JsEngine] Fail to eval script. \n$e');
+    } finally {
+       qjs.close();
+    }
   }
 
   @override
@@ -79,21 +99,13 @@ class _TestPageState extends State<TestPage> {
                       child: Text("evaluate"),
                       onPressed: () async {
                         await _ensureEngine();
-                        try {
-                          resp = (await engine!.evaluate(_controller.text ,
-                                  name: "<eval>"))
-                              .toString();
-                        } catch (e) {
-                          resp = e.toString();
-                        }
+
                         setState(() {});
                       }),
                   TextButton(
                       child: Text("reset engine"),
                       onPressed: () async {
-                        if (engine == null) return;
-                        await engine!.close();
-                        engine = null;
+
                       }),
                 ],
               ),
@@ -117,7 +129,7 @@ class _TestPageState extends State<TestPage> {
               padding: const EdgeInsets.all(12),
               color: Colors.green.withOpacity(0.05),
               constraints: BoxConstraints(minHeight: 100),
-              child: Text(resp == null ? '': resp!),
+              child: Text(resp == null ? '' : resp!),
             ),
           ],
         ),
