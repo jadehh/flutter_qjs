@@ -146,6 +146,11 @@ void _runJsIsolate(Map spawnMessage) async {
             evalFlags: msg[#flag],
           );
           break;
+        case #jsonParse:
+          data = await qjs.jsonParse(
+            msg[#command],
+          );
+          break;
         case #close:
           data = false;
           qjs.port.close();
@@ -288,4 +293,23 @@ class IsolateQjs {
       throw _decodeData(result[#error]);
     return _decodeData(result);
   }
+
+
+  Future<dynamic> jsonParse(
+      String command) async {
+    _ensureEngine();
+    final evaluatePort = ReceivePort();
+    final sendPort = await _sendPort!;
+    sendPort.send({
+      #type: #jsonParse,
+      #command: command,
+      #port: evaluatePort.sendPort,
+    });
+    final result = await evaluatePort.first;
+    evaluatePort.close();
+    if (result is Map && result.containsKey(#error))
+      throw _decodeData(result[#error]);
+    return _decodeData(result);
+  }
+
 }

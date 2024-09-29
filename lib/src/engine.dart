@@ -179,4 +179,22 @@ class FlutterQjs {
     jsFreeValue(ctx, jsval);
     return result;
   }
+
+  dynamic jsonParse(
+      String command) {
+    _ensureEngine();
+    final ctx = _ctx!;
+    final jsval = jsJsonParse(
+      ctx,
+      command,
+    );
+    if (jsIsException(jsval) != 0) {
+      jsFreeValue(ctx, jsval);
+      throw _parseJSException(ctx);
+    }
+    final result = _jsToDart(ctx, jsval);
+    jsFreeValue(ctx, jsval);
+    return result;
+  }
+
 }

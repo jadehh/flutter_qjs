@@ -353,6 +353,21 @@ final Pointer<JSValue> Function(
             )>>('jsEval')
     .asFunction();
 
+
+final Pointer<JSValue> Function(
+    Pointer<JSContext> ctx,
+    Pointer<Utf8> input,
+    int inputLen,
+    ) _jsJsonParse = _qjsLib
+    .lookup<
+    NativeFunction<
+        Pointer<JSValue> Function(
+            Pointer<JSContext>,
+            Pointer<Utf8>,
+            IntPtr,
+            )>>('jsJsonParse')
+    .asFunction();
+
 Pointer<JSValue> jsEval(
     Pointer<JSContext> ctx,
     String input,
@@ -373,6 +388,22 @@ Pointer<JSValue> jsEval(
   runtimeOpaques[jsGetRuntime(ctx)]?._port.sendPort.send(#eval);
   return val;
 }
+
+Pointer<JSValue> jsJsonParse(
+    Pointer<JSContext> ctx,
+    String input,
+    ) {
+  final utf8input = input.toNativeUtf8();
+  final val = _jsJsonParse(
+    ctx,
+    utf8input,
+    utf8input.length,
+  );
+  malloc.free(utf8input);
+  runtimeOpaques[jsGetRuntime(ctx)]?._port.sendPort.send(#eval);
+  return val;
+}
+
 
 /// DLLEXPORT int32_t jsValueGetTag(JSValue *val)
 final int Function(

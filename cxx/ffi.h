@@ -51,6 +51,8 @@ extern "C"
 
   DLLEXPORT JSValue *jsEval(JSContext *ctx, const char *input, size_t input_len, const char *filename, int32_t eval_flags);
 
+  DLLEXPORT JSValue *jsJsonParse(JSContext *ctx, const char *input, size_t input_len);
+
   DLLEXPORT int32_t jsValueGetTag(JSValue *val);
 
   DLLEXPORT void *jsValueGetPtr(JSValue *val);

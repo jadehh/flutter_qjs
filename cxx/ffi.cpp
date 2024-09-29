@@ -197,6 +197,14 @@ extern "C"
     return ret;
   }
 
+  DLLEXPORT JSValue *jsJsonParse(JSContext *ctx, const char *input, size_t input_len)
+  {
+    JSRuntime *rt = JS_GetRuntime(ctx);
+    js_begin_call(rt);
+    JSValue *ret = new JSValue(JS_ParseJSON(ctx, input, input_len, "parseJSON.js"));
+    return ret;
+  }
+
   DLLEXPORT int32_t jsValueGetTag(JSValue *val)
   {
     return JS_VALUE_GET_TAG(*val);
